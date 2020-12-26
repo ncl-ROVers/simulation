@@ -1,29 +1,36 @@
 name: Simulation CI
 on: [push]
+env:
+  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 jobs:
     build:
         runs-on: ubuntu-latest
-        container: gableroux/unity3d:2020.1.13f1
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v2
+              uses: actions/checkout@v1
               with:
                 lfs: true
+
+            - uses: actions/cache@v1.1.0
+              with:
+                path: Library
+                key: Library
 
             - name: Run tests
               uses: webbertakken/unity-test-runner@v1.3
               with:
-                unityVersion: 2020.1.13f1
+                unityVersion: 2019.2.11f1
 
             # Build
             - name: Build project
               uses: webbertakken/unity-builder@v0.10
               with:
+                projectPath: ./
                 unityVersion: 2020.1.13f1
-                targetPlatform: Windows
+                targetPlatform: StandaloneWindows64
 
             # Output
             - uses: actions/upload-artifact@v1
               with:
                 name: Build
-                path: build
+                path: builder@v0
