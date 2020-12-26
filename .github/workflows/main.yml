@@ -1,6 +1,5 @@
 name: Simulation CI
 on: [push]
-env:
 jobs:
     build:
         runs-on: ubuntu-latest
