@@ -1,0 +1,27 @@
+name: Simulation CI
+on: [push]
+env:
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        container: gableroux/unity3d:2020.1.13f1
+        steps:
+            - name: Checkout Project
+              uses: actions/checkout@v1
+              
+            - name: Write License
+              run: echo ${LICENSE_CONTENTS} > .github/Unity_v2020.x.ulf
+              env:
+                LICENSE_CONTENTS: ${{ secrets.UNITY_LICENSE }}
+              
+            - name: Activate Unity 
+              run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -manualLicenseFile .github/Unity_v2020.x.ulf || exit 0
+              
+            - name: Build Windows App
+              run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -noUpm -logFile -projectPath . -buildWindows64Player ./bin-win64/simulation.exe
+              
+            - name: Archive Windows Build
+              uses: actions/upload-artifact@v1
+              with:
+                name: SimulationWin64Binary
+                path: ./bin-win64/
