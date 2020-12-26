@@ -16,6 +16,9 @@ jobs:
             - name: Activate Unity 
               run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -manualLicenseFile .github/Unity_v2020.x.ulf || exit 0
               
+            - name: Create Windows Build Directory
+              run: mkdir bin-win64
+              
             - name: Build Windows App
               run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -noUpm -logFile -projectPath . -buildWindows64Player ./bin-win64/simulation.exe
               
