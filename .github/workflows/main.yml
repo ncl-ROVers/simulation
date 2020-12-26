@@ -9,7 +9,7 @@ jobs:
               uses: actions/checkout@v1
               
             - name: Write License
-              run: echo ${LICENSE_CONTENTS} > .github/Unity_v2020.x.ulf
+              run: echo "$LICENSE_CONTENTS" > .github/Unity_v2020.x.ulf
               env:
                 LICENSE_CONTENTS: ${{ secrets.UNITY_LICENSE }}
               
