@@ -1,34 +1,33 @@
 name: Simulation CI
 on: [push]
 env:
-  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+  LICENSE_CONTENTS: ${{ secrets.UNITY_LICENSE }}
   UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
   UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
 jobs:
     build:
         runs-on: ubuntu-latest
+        container: gableroux/unity3d:2018.2.21f1
         steps:
-            - name: Checkout repository
-              uses: actions/checkout@v2
-
-            - uses: actions/cache@v2
+            - name: Checkout Project
+              uses: actions/checkout@v1
               with:
-                path: Library
-                key: Library
-
-            - name: Run tests
-              uses: webbertakken/unity-test-runner@v1.7
+                lfs: true
+              
+            - name: Write License
+              run: echo "$LICENSE_CONTENTS" > .github/Unity_v2020.x.ulf
+              
+            - name: Activate Unity 
+              run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -username "$UNITY_EMAIL" -password "$UNITY_PASSWORD" -manualLicenseFile .github/Unity_v2020.x.ulf || exit 0
+              
+            - name: Create Windows Build Directory
+              run: mkdir bin-win64
+              
+            - name: Build Windows App
+              run: /opt/Unity/Editor/Unity -quit -batchmode -nographics -silent-crashes -logFile -projectPath ./ -buildWindows64Player -username "$UNITY_EMAIL" -password "$UNITY_PASSWORD" ./bin-win64/simulation.exe
+                          
+            - name: Archive Windows Build
+              uses: actions/upload-artifact@v1
               with:
-                unityVersion: 2020.1.13f1
-
-            - name: Build project
-              uses: webbertakken/unity-builder@v1.5
-              with:
-                projectPath: ./
-                unityVersion: 2019.3.8f1
-                targetPlatform: StandaloneLinux64
-
-            - uses: actions/upload-artifact@v2
-              with:
-                name: Build
-                path: build/
+                name: SimulationWin64Binary
+                path: ./bin-win64/
