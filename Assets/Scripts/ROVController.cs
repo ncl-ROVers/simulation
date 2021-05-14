@@ -46,11 +46,15 @@ public class ROVController : MonoBehaviour {
         }
     }
 
+    private float Normalize(float value, float currentMin, float currentMax, float intendedMin, float intendedMax) {
+        return intendedMin + (value - currentMin) * (intendedMax - intendedMin) / (currentMax - currentMin);
+    }
+
     void Update() {
         Tuple<int, float> action = new Tuple<int, float>(0, 0);
 
         while (actionQueue.TryDequeue(out action)) {
-            thrusterPower[action.Item1] += action.Item2;
+            thrusterPower[action.Item1] = Normalize(action.Item2, 1100, 1900, -1, 1);
         }
     }
 
