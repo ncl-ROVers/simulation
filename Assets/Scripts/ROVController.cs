@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using UnityEngine;
 
+using MessagePack;
+
 using System.Threading;
 
 public class ROVController : MonoBehaviour {
@@ -124,21 +126,9 @@ public class ROVController : MonoBehaviour {
     }
 
     void ProcessROVMessage(byte[] message, int messageLength) {
-        string jsonMessage = System.Text.Encoding.UTF8.GetString(message, 0, messageLength);
-
-        if (jsonMessage == null) {
-            return;
-        }
-
-        jsonMessage = jsonMessage.Trim();
-
-        if (jsonMessage.Length == 0) {
-            return;
-        }
-
+        Thrusters thrusters = MessagePackSerializer.Deserialize<Thrusters>(new ReadOnlyMemory<byte>(message, 0, messageLength));
+        
         try {
-            Thrusters thrusters = JsonUtility.FromJson<Thrusters>(jsonMessage);
-
             actionQueue.Enqueue(new Tuple<int, float>(0, thrusters.hfp));
             actionQueue.Enqueue(new Tuple<int, float>(1, thrusters.hfs));
             actionQueue.Enqueue(new Tuple<int, float>(2, thrusters.hap));

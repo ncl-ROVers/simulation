@@ -1,14 +1,29 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System;
+using MessagePack;
 
+[MessagePackObject]
 public class Thrusters {
-	public float hfs = 0.0f;
-	public float hfp = 0.0f;
-	public float has = 0.0f;
-	public float hap = 0.0f;
-	public float vfp = 0.0f;
-	public float vfs = 0.0f;
-	public float vap = 0.0f;
-	public float vas = 0.0f;
+	[Key(0)]
+	public float hfs { get; set; } = 0.0f;
+
+	[Key(1)]
+	public float hfp { get; set; }  = 0.0f;
+
+	[Key(2)]
+	public float has { get; set; }  = 0.0f;
+
+	[Key(3)]
+	public float hap { get; set; }  = 0.0f;
+
+	[Key(4)]
+	public float vfp { get; set; }  = 0.0f;
+
+	[Key(5)]
+	public float vfs { get; set; }  = 0.0f;
+
+	[Key(6)]
+	public float vap { get; set; }  = 0.0f;
+
+	[Key(7)]
+	public float vas { get; set; }  = 0.0f;
 }
