@@ -113,12 +113,16 @@ public class ROVController : MonoBehaviour {
         isRunning = false;
 
         if (thread != null) {
-            if (streamSocket != null) {
-                streamSocket.Shutdown(SocketShutdown.Both);
-            }
-            
-            if (masterSocket != null) {
-                masterSocket.Shutdown(SocketShutdown.Both);
+            try {
+                if (streamSocket != null) {
+                    streamSocket.Shutdown(SocketShutdown.Both);
+                }
+                
+                if (masterSocket != null) {
+                    masterSocket.Shutdown(SocketShutdown.Both);
+                }
+            } catch (Exception) {
+                //Do nothing
             }
 
             thread.Abort();
@@ -126,20 +130,17 @@ public class ROVController : MonoBehaviour {
     }
 
     void ProcessROVMessage(byte[] message, int messageLength) {
-        Thrusters thrusters = MessagePackSerializer.Deserialize<Thrusters>(new ReadOnlyMemory<byte>(message, 0, messageLength));
-        
-        try {
-            actionQueue.Enqueue(new Tuple<int, float>(0, thrusters.hfp));
-            actionQueue.Enqueue(new Tuple<int, float>(1, thrusters.hfs));
-            actionQueue.Enqueue(new Tuple<int, float>(2, thrusters.hap));
-            actionQueue.Enqueue(new Tuple<int, float>(3, thrusters.has));
-            actionQueue.Enqueue(new Tuple<int, float>(4, thrusters.vfp));
-            actionQueue.Enqueue(new Tuple<int, float>(5, thrusters.vfs));
-            actionQueue.Enqueue(new Tuple<int, float>(6, thrusters.vap));
-            actionQueue.Enqueue(new Tuple<int, float>(7, thrusters.vas));
-        } catch (Exception) {
-            Debug.LogError("Failed to parse JSON message");
-        }
+        ReadOnlyMemory<byte> blob = new ReadOnlyMemory<byte>(message, 0, messageLength);
+        var dynamicModel = MessagePackSerializer.Deserialize<dynamic>(blob, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+
+        actionQueue.Enqueue(new Tuple<int, float>(0, dynamicModel["T_HFP"]));
+        actionQueue.Enqueue(new Tuple<int, float>(1, dynamicModel["T_HFS"]));
+        actionQueue.Enqueue(new Tuple<int, float>(2, dynamicModel["T_HAP"]));
+        actionQueue.Enqueue(new Tuple<int, float>(3, dynamicModel["T_HAS"]));
+        actionQueue.Enqueue(new Tuple<int, float>(4, dynamicModel["T_VFP"]));
+        actionQueue.Enqueue(new Tuple<int, float>(5, dynamicModel["T_VFS"]));
+        actionQueue.Enqueue(new Tuple<int, float>(6, dynamicModel["T_VAP"]));
+        actionQueue.Enqueue(new Tuple<int, float>(7, dynamicModel["T_VAS"]));
     }
 
     void ServerCore() {
@@ -167,7 +168,7 @@ public class ROVController : MonoBehaviour {
 
                 while (isRunning) {
                     int read = socket.Receive(buffer);
-
+                    
                     if (read > 0) {
                         ProcessROVMessage(buffer, read);
                     }

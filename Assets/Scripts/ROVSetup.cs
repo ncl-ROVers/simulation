@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using MessagePack;
+
 public class RovSetup {
     public const int THRUSTER_HORIZONTAL_FORE_PORT = 0;
     public const int THRUSTER_HORIZONTAL_FORE_STARBOARD = 1;
@@ -27,4 +29,28 @@ public class RovSetup {
         Matrix4x4.Translate(new Vector3(-1, 1, -1) * THRUSTER_POSITION_SCALE),
         Matrix4x4.Translate(new Vector3(1, 1, -1) * THRUSTER_POSITION_SCALE)
     };
+    
+    private static bool serializerRegistered = false;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void Initialize() {
+        if (!serializerRegistered) {
+            MessagePack.Resolvers.StaticCompositeResolver.Instance.Register(
+                 //MessagePack.Resolvers.GeneratedResolver.Instance,
+                 MessagePack.Resolvers.StandardResolver.Instance
+            );
+
+            MessagePackSerializerOptions option = MessagePackSerializerOptions.Standard.WithResolver(MessagePack.Resolvers.StaticCompositeResolver.Instance);
+
+            MessagePackSerializer.DefaultOptions = option;
+            serializerRegistered = true;
+        }
+    }
+
+#if UNITY_EDITOR
+    [UnityEditor.InitializeOnLoadMethod]
+    static void EditorInitialize() {
+        Initialize();
+    }
+#endif
 }
