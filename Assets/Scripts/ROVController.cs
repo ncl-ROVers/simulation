@@ -92,16 +92,18 @@ public class ROVController : MonoBehaviour {
     }
 
     void OnDrawGizmos() {
-        for (int i = 0; i < RovSetup.thrusterTransforms.Length; ++i) {
-            Matrix4x4 matrix = transform.localToWorldMatrix * RovSetup.thrusterTransforms[i];
+        if (thrusterPower != null) {
+            for (int i = 0; i < RovSetup.thrusterTransforms.Length; ++i) {
+                Matrix4x4 matrix = transform.localToWorldMatrix * RovSetup.thrusterTransforms[i];
 
-            if (Math.Abs(thrusterPower[i]) > 0.0001) {
-                Gizmos.color = thrusterPower[i] < 0 ? Color.red : Color.green;
-            } else {
-                Gizmos.color = Color.gray;
+                if (Math.Abs(thrusterPower[i]) > 0.0001) {
+                    Gizmos.color = thrusterPower[i] < 0 ? Color.red : Color.green;
+                } else {
+                    Gizmos.color = Color.gray;
+                }
+
+                DrawThruster(matrix, 0.4f, 0.05f, 0.15f);
             }
-
-            DrawThruster(matrix, 0.4f, 0.05f, 0.15f);
         }
 
         Gizmos.color = Color.yellow;
