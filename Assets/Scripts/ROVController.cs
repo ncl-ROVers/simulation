@@ -95,7 +95,7 @@ public class ROVController : MonoBehaviour {
         for (int i = 0; i < RovSetup.thrusterTransforms.Length; ++i) {
             Matrix4x4 matrix = transform.localToWorldMatrix * RovSetup.thrusterTransforms[i];
 
-            if (Math.Abs(thrusterPower[i]) > 0.001) {
+            if (Math.Abs(thrusterPower[i]) > 0.0001) {
                 Gizmos.color = thrusterPower[i] < 0 ? Color.red : Color.green;
             } else {
                 Gizmos.color = Color.gray;
