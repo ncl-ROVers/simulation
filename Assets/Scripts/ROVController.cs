@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using System.Dynamic;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
@@ -95,9 +96,9 @@ public class ROVController : MonoBehaviour {
             Matrix4x4 matrix = transform.localToWorldMatrix * RovSetup.thrusterTransforms[i];
 
             if (Math.Abs(thrusterPower[i]) > 0.001) {
-                Gizmos.color = Color.red;
+                Gizmos.color = thrusterPower[i] < 0 ? Color.red : Color.green;
             } else {
-                Gizmos.color = Color.green;
+                Gizmos.color = Color.gray;
             }
 
             DrawThruster(matrix, 0.4f, 0.05f, 0.15f);
@@ -129,10 +130,10 @@ public class ROVController : MonoBehaviour {
         }
     }
 
-    void ProcessROVMessage(byte[] message, int messageLength) {
+    byte[] ProcessROVMessage(byte[] message, int messageLength) {
         ReadOnlyMemory<byte> blob = new ReadOnlyMemory<byte>(message, 0, messageLength);
         var dynamicModel = MessagePackSerializer.Deserialize<dynamic>(blob, MessagePack.Resolvers.ContractlessStandardResolver.Options);
-
+        
         actionQueue.Enqueue(new Tuple<int, float>(0, dynamicModel["T_HFP"]));
         actionQueue.Enqueue(new Tuple<int, float>(1, dynamicModel["T_HFS"]));
         actionQueue.Enqueue(new Tuple<int, float>(2, dynamicModel["T_HAP"]));
@@ -141,6 +142,11 @@ public class ROVController : MonoBehaviour {
         actionQueue.Enqueue(new Tuple<int, float>(5, dynamicModel["T_VFS"]));
         actionQueue.Enqueue(new Tuple<int, float>(6, dynamicModel["T_VAP"]));
         actionQueue.Enqueue(new Tuple<int, float>(7, dynamicModel["T_VAS"]));
+
+        dynamic empty = new System.Dynamic.ExpandoObject();
+        byte[] responseData = MessagePackSerializer.Serialize<dynamic>(empty, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+
+        return responseData;
     }
 
     void ServerCore() {
@@ -170,7 +176,9 @@ public class ROVController : MonoBehaviour {
                     int read = socket.Receive(buffer);
                     
                     if (read > 0) {
-                        ProcessROVMessage(buffer, read);
+                        byte[] response = ProcessROVMessage(buffer, read);
+
+                        socket.Send(response);
                     }
                 }
 
